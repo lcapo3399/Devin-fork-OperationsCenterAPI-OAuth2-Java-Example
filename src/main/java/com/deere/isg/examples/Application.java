@@ -34,21 +34,25 @@ public class Application {
      */
     public void start() {
         int port = 9090;
+        Javalin app = createApp().start(port);
+        logger.info("Application Stated please navigate to http://localhost:"+port);
+        Unirest.config().interceptor(new LoggingInterceptor());
+    }
+
+    Javalin createApp() {
         Javalin app = Javalin.create(c -> {
             c.fileRenderer(new JavalinMustache(new DefaultMustacheFactory("templates")));
             c.staticFiles.add(s -> {
                 s.directory = "assets/";
                 s.location = Location.CLASSPATH;
             });
-
-        }).start(port);
+        });
         app.get("/", this::index);
         app.post("/", this::startOIDC);
         app.get("/callback", this::processCallback);
         app.get("/refresh-access-token", this::refreshAccessToken);
         app.post("/call-api", this::callTheApi);
-        logger.info("Application Stated please navigate to http://localhost:"+port);
-        Unirest.config().interceptor(new LoggingInterceptor());
+        return app;
     }
 
     public void index(Context contex) {
